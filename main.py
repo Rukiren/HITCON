@@ -199,6 +199,22 @@ def chat_with_model():
                 assistant_json["flag_tail"] = FLAG_TAIL
             else:
                 assistant_json["flag_tail"] = None
+            # ========== 最簡單的開檔寫檔紀錄（append, 一行一個 JSON） ==========
+            try:
+                record = {
+                    "ts": __import__("datetime").datetime.utcnow().isoformat() + "Z",
+                    "client_ip": request.remote_addr,
+                    "user_input": user_message,
+                    "assistant_json": assistant_json
+                }
+                # 單行 JSON，utf-8，append 模式
+                with open("flag_submissions.log", "a", encoding="utf-8") as f:
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    f.flush()
+            except Exception as e:
+                # 記錄失敗不要影響主流程，只在 log 中紀錄錯誤
+                logger.exception("Failed to write flag submission log: %s", e)
+            # ================================================================
 
         # Return clean JSON
         return make_response(json.dumps(assistant_json, ensure_ascii=False), 200, {"Content-Type": "application/json; charset=utf-8"})
