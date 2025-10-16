@@ -105,7 +105,7 @@ def chat_with_model():
         # Instantiate the model, providing our Pydantic class as a tool.
         # The model will use this schema to structure its output.
         model = genai.GenerativeModel(
-            model_name='gemini-1.5-flash',
+            model_name='gemini-2.5-flash',
             # Pass the Pydantic class to the `tools` parameter
             tools=[VerificationResult],
             safety_settings=safety_settings,
@@ -123,9 +123,15 @@ def chat_with_model():
             if not function_call or function_call.name != "VerificationResult":
                  raise ValueError("Model did not call the expected VerificationResult tool.")
             
-            # The SDK provides the arguments as a dict-like object.
-            # We convert it to a standard Python dict.
-            assistant_json = dict(function_call.args)
+            # --- SOLUTION ---
+            # 1. Instantiate our Pydantic model using the arguments from the function call.
+            #    Pydantic will correctly parse and convert all nested types, 
+            #    including 'RepeatedComposite' into a standard Python list.
+            pydantic_result = VerificationResult(**function_call.args)
+            
+            # 2. Use the .model_dump() method from the Pydantic object to get a
+            #    pure, JSON-serializable Python dictionary.
+            assistant_json = pydantic_result.model_dump()
 
         except (IndexError, AttributeError, ValueError) as e:
             logger.error(f"Failed to parse model's structured output: {e}\nResponse: {response.text}")
