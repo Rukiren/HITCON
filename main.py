@@ -139,8 +139,8 @@ def chat_with_model():
                 {"role": "user", "content": user_message}
             ],
             "model": "Llama3-TAIDE-LX-70B-Chat",
-            "temperature": 0.0,  # deterministic for validation
-            "top_p": 0.0
+            "temperature": 0.2,  # deterministic for validation
+            "top_p": 1.0
         }
 
         # Call upstream
